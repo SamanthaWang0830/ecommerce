@@ -13,6 +13,7 @@ interface DashboardPage{
     params:{storeId: string}
 }
 
+ {/* @ts-expect-error Server Component */}
 const DashboardPage: React.FC<DashboardPage>=async({params})=>{
 
     const totalRevenue=await getTotalRevenue(params.storeId)

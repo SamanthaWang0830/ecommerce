@@ -19,7 +19,6 @@ model Store{
   billboard Billboard[] @relation("StoreToBillboard")
   categories Category[] @relation("StoreToCategory")
   products Product[] @relation("StoreToProduct")
-  sizes Size[] @relation("StoreToSize")
   orders Order[] @relation("StoreToOrder")
   createAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -54,20 +53,6 @@ model Category{
   @@index([billboardId])
 }
 
-model Size{
-  id String @id @default(uuid())
-  storeId String
-  store Store @relation("StoreToSize", fields: [storeId], references: [id])
-  products Product[] @relation("SizeToProduct")
-  name String
-  value String
-  createAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@index([storeId])
-}
-
-
 model Product{
   id String @id @default(uuid())
   storeId String
@@ -76,10 +61,14 @@ model Product{
   category Category @relation("CategoryToProduct", fields: [categoryId], references: [id])
   name String
   price Decimal
-  isArchived Boolean
   isFeatured Boolean
-  sizeId String
-  size Size @relation("SizeToProduct", fields: [sizeId], references: [id])
+
+  // if every stock become 0, then isArchived is true
+  stockOfSmallSize Int
+  stockOfMediumSize Int
+  stockOfLargeSize Int
+  isArchived Boolean @default(false)
+
   images Image[] @relation("ProductToImage")
   orderItems OrderItem[]
   createAt DateTime @default(now())
@@ -87,7 +76,7 @@ model Product{
   
   @@index([storeId])
   @@index([categoryId])
-  @@index([sizeId])
+
 }
 
 model Image{

@@ -1,7 +1,7 @@
 "use client" 
 import * as z from 'zod'
 import { Button } from "@/components/ui/button";
-import { Product, Image, Category, Size} from "@prisma/client"
+import { Product, Image, Category} from "@prisma/client"
 import { Trash } from "lucide-react";
 import { useParams, useRouter } from "next/navigation"
 import { useState } from "react"
@@ -23,23 +23,21 @@ const formSchema=z.object({
     images: z.object({ url: z.string() }).array(),
     price: z.coerce.number().min(1),
     categoryId: z.string().min(1),
-    sizeId: z.string().min(1),
+    stockOfSmallSize: z.coerce.number().int().min(0),
+    stockOfMediumSize:z.coerce.number().int().min(0),
+    stockOfLargeSize:z.coerce.number().int().min(0),
     isFeatured: z.boolean().default(false).optional(),
     isArchived: z.boolean().default(false).optional()
 })
 
-type ProductFormValues= z.infer<typeof formSchema>
-
 interface ProductFormProps {
     initialData: Product & {images: Image[]} | null;
     categories: Category[];
-    sizes: Size[];
 };
 
-export const ProductForm: React.FC<ProductFormProps> =({initialData,categories,sizes})=>{
+export const ProductForm: React.FC<ProductFormProps> =({initialData,categories})=>{
     const params = useParams();
     const router = useRouter();
-
     const defaultValues = initialData ? {
         ...initialData,
         price: parseFloat(String(initialData?.price)), // decimal to float
@@ -48,11 +46,15 @@ export const ProductForm: React.FC<ProductFormProps> =({initialData,categories,s
         images: [],
         price: 0,
         categoryId: '',
-        sizeId: '',
+        stockOfSmallSize:0,
+        stockOfMediumSize:0,
+        stockOfLargeSize:0,
         isFeatured: false,
         isArchived: false,
     }
-    const form = useForm<ProductFormValues>({
+
+    
+    const form = useForm<z.infer<typeof formSchema>>({
         resolver:zodResolver(formSchema),
         defaultValues: defaultValues
     });
@@ -62,7 +64,8 @@ export const ProductForm: React.FC<ProductFormProps> =({initialData,categories,s
 
     const toastMessage= initialData? "Product Updated" : "Product Created"
     
-    const onSubmit=async(data: ProductFormValues)=>{
+    const onSubmit=async(data: z.infer<typeof formSchema>)=>{
+        console.log(data)
         try {
             setLoading(true)
             if(initialData){
@@ -211,41 +214,44 @@ export const ProductForm: React.FC<ProductFormProps> =({initialData,categories,s
                         />
                         <FormField
                             control={form.control}
-                            name="sizeId"
+                            name='stockOfSmallSize'
                             render={({ field }) => (
                                 <FormItem>
-                                <FormLabel>Size</FormLabel>
-                                <Select 
-                                    disabled={loading} 
-                                    onValueChange={field.onChange} 
-                                    value={field.value} 
-                                    defaultValue={field.value}
-                                >
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue
-                                                defaultValue={field.value}
-                                                placeholder='Select a size'
-                                            />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {
-                                            sizes.map((size)=>(
-                                                <SelectItem 
-                                                    key={size.id} 
-                                                    value={size.id}
-                                                >
-                                                    {size.name}
-                                                </SelectItem>
-                                            ))
-                                        }
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
+                                    <FormLabel>Stock of Small Size</FormLabel>
+                                        <FormControl>
+                                            <Input type='number' disabled={loading} placeholder="0" {...field} />
+                                        </FormControl>
+                                    <FormMessage />
                                 </FormItem>
                             )}
                         />
+                        <FormField
+                            control={form.control}
+                            name='stockOfMediumSize'
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Stock of Medium Size</FormLabel>
+                                        <FormControl>
+                                            <Input type='number' disabled={loading} placeholder="0" {...field} />
+                                        </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name='stockOfLargeSize'
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Stock of Large Size</FormLabel>
+                                        <FormControl>
+                                            <Input type='number' disabled={loading} placeholder="0" {...field} />
+                                        </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
                         <FormField
                             control={form.control}
                             name="isFeatured"

@@ -5,29 +5,33 @@ import {format} from 'date-fns'
 import { formatter } from "@/lib/utils"
 
 const BillboardPage=async({params}:{params:{storeId: string}})=>{
+
     const products=await prismadb.product.findMany({
         where:{
             storeId: params.storeId
         },
         include: {
-            category: true,
-            size: true
+            category: true
         },
         orderBy:{
             createAt:'desc'
         }
     })
 
-    const formattedProducts: ProductColumn[]=products.map((item)=>({
-        id: item.id,
-        name: item.name,
-        isFeatured: item.isFeatured,
-        isArchived: item.isArchived,
-        category: item.category.name,
-        size: item.size.name,
-        price: formatter.format(item.price.toNumber()),
-        createdAt: format(item.createAt, 'MMMM do, yyyy')
-    }))
+
+    const formattedProducts: ProductColumn[]=products.map((product)=>(
+        {
+            id: product.id,
+            name: product.name,
+            isFeatured: product.isFeatured,
+            stockOfSmallSize:product.stockOfSmallSize,
+            stockOfMediumSize:product.stockOfMediumSize,
+            stockOfLargeSize:product.stockOfLargeSize,
+            category: product.category.name,
+            price: formatter.format(product.price.toNumber()),
+            createdAt: format(product.createAt, 'MMMM do, yyyy')
+        }
+    ))
 
     return (
         <div className="flex-col">

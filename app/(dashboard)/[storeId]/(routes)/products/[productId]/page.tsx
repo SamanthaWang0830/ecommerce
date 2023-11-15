@@ -17,12 +17,6 @@ const ProductPage=async({params}:{params:{productId: string, storeId: string}})=
             storeId: params.storeId
         }
     })
-
-    const sizes= await prismadb.size.findMany({
-        where:{
-            storeId: params.storeId
-        }
-    })
     
     return (
         <div className="flex-col">
@@ -30,7 +24,6 @@ const ProductPage=async({params}:{params:{productId: string, storeId: string}})=
                 <ProductForm 
                     initialData={product} 
                     categories={categories}
-                    sizes={sizes}
                 />
             </div>
         </div>

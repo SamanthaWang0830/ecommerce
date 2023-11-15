@@ -22,14 +22,12 @@ export async function GET(
             where: {
                 storeId: params.storeId,
                 categoryId,
-                sizeId,
                 isFeatured: isFeatured? true: undefined,
                 isArchived: false 
             },
             include: {
                 images: true,
-                category:true,
-                size:true
+                category:true
             },
             orderBy:{
                 createAt:'desc'
@@ -51,7 +49,7 @@ export async function POST(
     try {
         const {userId}= auth()
         const body= await req.json()
-        const {name, price, categoryId, sizeId, isFeatured, isArchived,images}=body
+        const {name, price, categoryId, stockOfSmallSize,stockOfMediumSize,stockOfLargeSize, isFeatured, isArchived,images}=body
         if(!userId){
             return new NextResponse('Unauthenticated', {status:401})
         }
@@ -66,9 +64,6 @@ export async function POST(
         }
         if(!categoryId){
             return new NextResponse('CategoryId is required', {status:400})
-        }
-        if(!sizeId){
-            return new NextResponse('SizeId is required', {status:400})
         }
         if(!params.storeId){
             return new NextResponse('StoreId is required', {status:400})
@@ -90,7 +85,9 @@ export async function POST(
                 name,
                 price, 
                 categoryId, 
-                sizeId, 
+                stockOfSmallSize,
+                stockOfMediumSize,
+                stockOfLargeSize, 
                 isFeatured, 
                 isArchived,
                 storeId: params.storeId,
