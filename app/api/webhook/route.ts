@@ -24,19 +24,27 @@ export async function POST(req:Request) {
 
     const session= event.data.object as Stripe.Checkout.Session
     const address= session?.customer_details?.address
-
     const addressComponent=[
-        address?.line1,
-        address?.line2,
-        address?.city,
-        address?.state,
-        address?.postal_code,
-        address?.country
+            address?.line1,
+            address?.line2,
+            address?.city,
+            address?.state,
+            address?.postal_code,
+            address?.country
     ]
-
     const addressString= addressComponent.filter((c)=>c!==null).join(', ')
 
+    console.log('this is a testing before the address string')
+    console.log(addressString)
+    
+
+    console.log(event.type)
+
+
+    
     if(event.type=='checkout.session.completed'){
+        
+        
         const order = await prismadb.order.update({
             where:{
                 id: session?.metadata?.orderId
@@ -51,18 +59,63 @@ export async function POST(req:Request) {
             }
         })
 
-        const productIds= order.orderItems.map((orderItem)=>orderItem.productId)
-
-        await prismadb.product.updateMany({
-            where:{
-                id:{
-                    in:[...productIds]
+        for(let orderItem of order.orderItems){
+            const product = await prismadb.product.findUnique({
+                where:{
+                    id: orderItem.productId
                 }
-            },
-            data:{
-                isArchived:true
+            })
+
+            // Update the product with the new stock values
+            let updatedStock
+            if(orderItem.size.toLowerCase()=='s'){
+                updatedStock= product?.stockOfSmallSize!- orderItem.num
+
+                
+                await prismadb.product.update({
+                    where: {
+                        id: orderItem.productId,
+                    },
+                    data: {
+                        stockOfSmallSize: updatedStock,
+                    },
+                });
+            }else if(orderItem.size.toLowerCase()=='m'){
+                updatedStock= product?.stockOfMediumSize!- orderItem.num
+
+                await prismadb.product.update({
+                    where: {
+                        id: orderItem.productId,
+                    },
+                    data: {
+                        stockOfMediumSize: updatedStock,
+                    },
+                });
+            }else{
+                updatedStock=product?.stockOfLargeSize!- orderItem.num
+
+                await prismadb.product.update({
+                    where: {
+                        id: orderItem.productId,
+                    },
+                    data: {
+                        stockOfLargeSize: updatedStock,
+                    },
+                });
             }
-        })
+
+            // if every size stock of this product is equal to 0, then archive it.
+            if(product?.stockOfLargeSize==0 && product.stockOfMediumSize==0 && product.stockOfSmallSize==0){
+                await prismadb.product.update({
+                    where: {
+                        id: orderItem.productId,
+                    },
+                    data: {
+                        isArchived:true
+                    },
+                });
+            }
+        }
     }
 
     return new NextResponse(null, {status:200})

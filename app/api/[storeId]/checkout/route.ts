@@ -10,35 +10,36 @@ const corsHeaders={
 }
 
 export async function OPTIONS() {
-    return NextResponse.json({}, { headers: corsHeaders });
+    try {
+        return NextResponse.json({}, { headers: corsHeaders });
+    } catch (error) {
+        console.log(error)
+    }
+    
 }
 
 export async function POST(req:Request, {params}: {params: { storeId: string }}) {
-    const { productIds } = await req.json()
+    const { items } = await req.json()
 
-    if (!productIds || productIds.length === 0) {
+    if (!items || items.length === 0) {
         return new NextResponse("Product ids are required", { status: 400 })
     }
-
-    const products = await prismadb.product.findMany({
-        where: {
-          id: {
-            in: productIds
-          }
-        }
-    })
     
     const line_items: Stripe.Checkout.SessionCreateParams.LineItem[]=[]
 
-    products.forEach((product)=>{
+    items.forEach((orderItem: any) => {
+        const product = orderItem.product
         line_items.push({
-            quantity:1,
+            quantity: orderItem.num,
             price_data:{
                 currency:'EUR',
                 product_data:{
-                    name:product.name
+                    name:product.name,
+                    metadata: {
+                        size: orderItem.size,
+                    },
                 },
-                unit_amount:product.price.toNumber()*100
+                unit_amount:product.price*100
             }
         })
     })
@@ -48,12 +49,14 @@ export async function POST(req:Request, {params}: {params: { storeId: string }})
             storeId: params.storeId,
             isPaid:false,
             orderItems:{
-                create:productIds.map((productId: string)=>({
+                create:items.map((orderItem: any)=>({
                     product:{
                         connect:{
-                            id: productId
+                            id: orderItem.product.id
                         }
-                    }
+                    },
+                    size: orderItem.size,
+                    num: orderItem.num,
                 }))
             }
         }

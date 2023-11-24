@@ -1,10 +1,9 @@
 import prismadb from "@/lib/prismadb"
-import { OrderClient } from "./components/client"
-import { OrderColumn } from "./components/columns"
-import {format} from 'date-fns'
-import { formatter } from "@/lib/utils"
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table"
+import OrderList from "./components/orderList"
 
 const OrderPage=async({params}:{params:{storeId: string}})=>{
+
     const orders=await prismadb.order.findMany({
         where:{
             storeId: params.storeId
@@ -19,26 +18,26 @@ const OrderPage=async({params}:{params:{storeId: string}})=>{
         orderBy:{
             createAt:'desc'
         }
-    })
-
-    const formattedOrders: OrderColumn[]=orders.map((item)=>({
-        id: item.id,
-        phone: item.phone,
-        address: item.address,
-        products: item.orderItems.map((orderItem)=>orderItem.product.name).join(','),
-        totalPrice: formatter.format(item.orderItems.reduce((total, item)=>{
-            return total= Number(item.product.price)
-        },0)),
-        isPaid: item.isPaid,
-        createdAt: format(item.createAt, 'MMMM do, yyyy')
-    }))
+    }) 
 
     return (
-        <div className="flex-col">
-            <div className="flex-1 space-y-4 p-8 pt-6">
-                <OrderClient data={formattedOrders}/>
-            </div>
-        </div>
+            
+                <Table className="flex flex-col">
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="font-medium">Order ID</TableHead>
+                            <TableHead className="font-medium">Phone</TableHead>
+                            <TableHead className="font-medium">Address</TableHead>
+                            <TableHead className="font-medium">Total Price</TableHead>
+                            <TableHead className="font-medium">isPaid</TableHead>
+                            <TableHead className="font-medium">OrderItems Detail</TableHead>
+                        </TableRow>
+                    </TableHeader>
+
+                    <TableBody>
+                        <OrderList orders={orders}/>
+                    </TableBody>
+                </Table>
     )
 }
 
