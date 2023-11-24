@@ -14,13 +14,13 @@ export async function GET(
         return new NextResponse("Store id is required", { status: 400 });
       }
   
-      const billboards = await prismadb.billboard.findMany({
+      const billboard = await prismadb.billboard.findUnique({
         where: {
           storeId: params.storeId
         }
       });
     
-      return NextResponse.json(billboards);
+      return NextResponse.json(billboard);
     } catch (error) {
       console.log('[BILLBOARDS_GET]', error);
       return new NextResponse("Internal error", { status: 500 });

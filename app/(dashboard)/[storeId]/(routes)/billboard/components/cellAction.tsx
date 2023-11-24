@@ -28,7 +28,7 @@ export const CellAction: React.FC<CellActionProps>=({data})=>{
     const onDelete=async()=>{
         try {
             setLoading(true)
-            await axios.delete(`/api/${params.storeId}/billboards/${data.id}`)
+            await axios.delete(`/api/${params.storeId}/billboard/${data.id}`)
             router.refresh()
             toast.success("BillBoard deleted")
         } catch (error) {
@@ -59,7 +59,7 @@ export const CellAction: React.FC<CellActionProps>=({data})=>{
                     <DropdownMenuLabel>
                         Actions
                     </DropdownMenuLabel>
-                    <DropdownMenuItem onClick={()=>router.push(`/${params.storeId}/billboards/${data.id}`)}>
+                    <DropdownMenuItem onClick={()=>router.push(`/${params.storeId}/billboard/${data.id}`)}>
                         <Edit className="mr-2 h-4 w-4"/>
                         Update
                     </DropdownMenuItem>
