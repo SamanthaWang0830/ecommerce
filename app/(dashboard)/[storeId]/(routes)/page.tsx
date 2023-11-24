@@ -9,12 +9,12 @@ import { getStockCount } from "@/actions/getStockCount";
 import { Overview } from "@/components/overview";
 import { getGraphRevenue } from "@/actions/getGraphRevenue";
 
-interface DashboardPage{
+interface DashboardPageProps{
     params:{storeId: string}
 }
 
- {/* @ts-expect-error Server Component */}
-const DashboardPage: React.FC<DashboardPage>=async({params})=>{
+
+const DashboardPage: React.FC<DashboardPageProps>=async({params})=>{
 
     const totalRevenue=await getTotalRevenue(params.storeId)
     const salesCount= await getSalesCount(params.storeId)
